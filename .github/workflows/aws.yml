@@ -1,9 +1,9 @@
 name: Deploy and Run Commands on EC2
 
 on:
-  push:  # Trigger on any commit
+  push:
     branches:
-      - '**'  # This will trigger on any branch
+      - '**'
 
 jobs:
   deploy:
@@ -13,19 +13,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up AWS CLI
+    - name: Set up SSH key
       run: |
-        sudo apt-get update
-        sudo apt-get install -y awscli
-        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws configure set default.region ${{ secrets.AWS_REGION }}
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
-    - name: Run commands on EC2 using SSM
+    - name: Run commands on EC2
       run: |
-        aws ssm send-command \
-          --instance-ids "i-071343a910ab3bb62" \
-          --document-name "AWS-RunShellScript" \
-          --parameters commands="[\"cd generative-ai-docs/examples/gemini/python/docs-agent\", \"export GOOGLE_API_KEY=AIzaSyCKjKDOD4K2TK4czP3EvcCBTGd-q53vw_8\", \"tmux kill-server\", \"tmux new-session -d 'poetry shell && agent chatbot'\"]" \
-          --output text
-
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@ec2-public-dns-name << 'EOF'
+        cd generative-ai-docs/examples/gemini/python/docs-agent
+        export GOOGLE_API_KEY=AIzaSyCKjKDOD4K2TK4czP3EvcCBTGd-q53vw_8
+        tmux kill-server
+        tmux new-session -d 'poetry shell && agent chatbot'
+        EOF
