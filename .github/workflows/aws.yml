@@ -1,9 +1,9 @@
 name: Deploy and Run Commands on EC2
 
 on:
-  push:
+  push:  # Trigger on any commit
     branches:
-      - main  # Trigger on push to the main branch
+      - '**'  # This will trigger on any branch
 
 jobs:
   deploy:
