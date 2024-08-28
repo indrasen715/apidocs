@@ -21,7 +21,7 @@ jobs:
 
     - name: Run commands on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@ec2-public-dns-name << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-65-2-166-249.ap-south-1.compute.amazonaws.com << 'EOF'
         cd generative-ai-docs/examples/gemini/python/docs-agent
         export GOOGLE_API_KEY=AIzaSyCKjKDOD4K2TK4czP3EvcCBTGd-q53vw_8
         tmux kill-server
