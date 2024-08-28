@@ -23,9 +23,8 @@ jobs:
 
     - name: Run commands on EC2 using SSM
       run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=<YOUR_INSTANCE_TAG_NAME>" --query "Reservations[*].Instances[*].InstanceId" --output text)
         aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
+          --instance-ids "i-071343a910ab3bb62" \
           --document-name "AWS-RunShellScript" \
           --parameters commands="cd generative-ai-docs/examples/gemini/python/docs-agent, export GOOGLE_API_KEY=AIzaSyCKjKDOD4K2TK4czP3EvcCBTGd-q53vw_8, tmux kill-server, tmux new-session -d 'poetry shell && agent chatbot'" \
           --output text
