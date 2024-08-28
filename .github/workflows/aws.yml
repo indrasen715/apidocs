@@ -1,0 +1,31 @@
+name: Deploy and Run Commands on EC2
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y awscli
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set default.region ${{ secrets.AWS_REGION }}
+
+    - name: Run commands on EC2 using SSM
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=<YOUR_INSTANCE_TAG_NAME>" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters commands="cd generative-ai-docs/examples/gemini/python/docs-agent, export GOOGLE_API_KEY=AIzaSyCKjKDOD4K2TK4czP3EvcCBTGd-q53vw_8, tmux kill-server, tmux new-session -d 'poetry shell && agent chatbot'" \
+          --output text
